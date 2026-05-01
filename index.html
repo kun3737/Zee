@@ -3,287 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Management v47 | Final Pro</title>
-    <!-- Image Download ke liye Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Elite Management v48 - Official</title>
+    
+    <!-- Firebase SDK (Zaroori Libraries) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
-        :root { --bg: #2c3e50; --header: #1a1a1a; --card-bg: #ecf0f1; --text: #2c3e50; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; }
-        .hidden { display: none !important; }
-        header { background: var(--header); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #34495e; position: sticky; top: 0; z-index: 100; }
-        .container { padding: 30px 5%; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
-        .card { background: var(--card-bg); padding: 25px; border-radius: 12px; text-align: center; cursor: pointer; color: var(--text); font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s; position: relative; }
-        .card:hover { transform: translateY(-5px); background: #fff; }
+        /* CSS: Design aur Layout */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; color: #ffffff; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: #16213e; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { text-align: center; color: #4ecca3; text-transform: uppercase; letter-spacing: 2px; }
         
-        .del-checkbox { position: absolute; top: 10px; right: 10px; transform: scale(1.5); cursor: pointer; }
+        .form-section { background: #0f3460; padding: 20px; border-radius: 10px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        input { padding: 12px; border: none; border-radius: 5px; background: #e9ecef; color: #333; font-weight: bold; }
         
-        /* Result & Banner Styling */
-        .header-wrapper { width: 100%; background: #fff; border-bottom: 2px solid #000; overflow: hidden; }
-        .school-header-img { width: 100%; height: 160px; object-fit: fill; display: block; }
-        .result-sheet { background: #fff; border: 2px solid #000; color: #000; max-width: 800px; margin: auto; padding-bottom: 20px; }
-        .res-padding { padding: 20px; }
-        .marks-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .marks-table th, .marks-table td { border: 1px solid #000; padding: 10px; text-align: center; }
-        .stu-pic { width: 110px; height: 130px; border: 1px solid #000; object-fit: cover; background: #eee; }
+        button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .add-btn { background: #4ecca3; color: #1a1a2e; }
+        .add-btn:hover { background: #45b391; }
+        .sync-btn { background: #e94560; color: white; width: 100%; margin-top: 20px; font-size: 16px; }
 
-        /* Modals */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 500px; color: #333; max-height: 90vh; overflow-y: auto; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .btn { padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; border: none; transition: 0.2s; }
-        .btn-green { background: #27ae60; color: white; width: 100%; }
-        .btn-blue { background: #3498db; color: white; }
-        .btn-red { background: #c0392b; color: white; }
-
-        @media print {
-            body * { visibility: hidden; }
-            #printable-area, #printable-area * { visibility: visible; }
-            #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
-        }
+        .student-list { margin-top: 20px; }
+        .student-card { background: #1a1a2e; border-left: 5px solid #4ecca3; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 20px; border-radius: 0 10px 10px 0; }
+        .student-pic { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #4ecca3; object-fit: cover; }
+        .info { flex-grow: 1; }
+        .info h4 { margin: 0; color: #4ecca3; font-size: 18px; }
+        .marks-tag { font-size: 14px; background: #0f3460; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
+        .delete-btn { background: #ff4d4d; color: white; padding: 8px 12px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <!-- Login -->
-    <div id="login-screen" style="height: 100vh; display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
-        <div style="background: white; padding: 40px; border-radius: 15px; text-align: center; width: 320px;">
-            <h2>Elite Access</h2>
-            <input type="password" id="sys-pass" placeholder="Password">
-            <button class="btn btn-green" onclick="checkPass()">Unlock ✅</button>
-        </div>
+<div class="container">
+    <h2>Elite Management v48</h2>
+    
+    <!-- Input Fields -->
+    <div class="form-section">
+        <input type="text" id="cls" placeholder="Class (e.g. 10th)">
+        <input type="text" id="roll" placeholder="Roll Number">
+        <input type="number" id="t-marks" placeholder="Total Marks">
+        <input type="number" id="o-marks" placeholder="Obtained Marks">
+        <button class="add-btn" onclick="addStudent()">Add Student</button>
     </div>
 
-    <!-- Main Dashboard -->
-    <div id="dashboard" class="hidden">
-        <header>
-            <button class="btn btn-blue" onclick="goBack()" style="width:auto;">⬅ Back</button>
-            <span id="nav-label">Dashboard</span>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-blue" id="link-gen-btn">🔗 Portal Link</button>
-                <button class="btn btn-red" id="del-mode-btn" onclick="toggleDeleteMode()">🗑 Delete Mode</button>
-                <button class="btn btn-red hidden" id="confirm-del-btn" onclick="executeMultipleDelete()">🔥 Confirm</button>
-            </div>
-        </header>
-
-        <div class="container">
-            <div id="main-grid" class="grid"></div>
-        </div>
+    <div id="display-area" class="student-list">
+        <!-- Students yahan show honge -->
     </div>
 
-    <!-- Modals (Banner, Reg, Admin Pic, Marks, Link) -->
-    <div id="banner-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>🏫 School Banner</h3>
-            <input type="file" id="sch-file" accept="image/*">
-            <button class="btn btn-green" onclick="saveBanner()">Save Banner ✅</button>
-            <button class="btn" onclick="toggleModal('banner-modal')" style="width:100%; margin-top:5px;">Close</button>
-        </div>
-    </div>
+    <button class="sync-btn" onclick="syncWithCloud()">Save & Sync to Cloud ☁️</button>
+</div>
 
-    <div id="reg-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>👤 Register Student</h3>
-            <div id="reg-form">
-                <input type="text" id="s-name" placeholder="Name">
-                <input type="text" id="s-fname" placeholder="Father Name">
-                <input type="text" id="s-roll" placeholder="Roll No">
-                <input type="text" id="s-class" placeholder="Class">
-                <input type="text" id="s-mob" placeholder="Mobile">
-                <input type="text" id="s-addr" placeholder="Address">
-            </div>
-            <button class="btn btn-green" onclick="saveStudent()">Register & OK ✅</button>
-            <button class="btn" onclick="toggleModal('reg-modal')" style="width:100%; margin-top:5px;">Close</button>
-        </div>
-    </div>
+<script>
+    // JavaScript: Logic aur Firebase Connection
+    const firebaseConfig = {
+        apiKey: "AIzaSyBAmI0iETjOAVygeMfLho4Yp0qWhV9P1XI",
+        authDomain: "elite-management-58a3f.firebaseapp.com",
+        databaseURL: "https://elite-management-58a3f-default-rtdb.firebaseio.com",
+        projectId: "elite-management-58a3f",
+        storageBucket: "elite-management-58a3f.firebasestorage.app",
+        messagingSenderId: "250529182768",
+        appId: "1:250529182768:web:3f260a155c1dbbf9a969f5"
+    };
 
-    <div id="admin-pic-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>📷 Admin: Update Photo</h3>
-            <input type="text" id="admin-p-cls" placeholder="Class">
-            <input type="text" id="admin-p-rl" placeholder="Roll No">
-            <input type="file" id="admin-p-file" accept="image/*">
-            <button class="btn btn-green" onclick="adminUpdatePic()">Update Pic ✅</button>
-            <button class="btn" onclick="toggleModal('admin-pic-modal')" style="width:100%; margin-top:5px;">Close</button>
-        </div>
-    </div>
+    firebase.initializeApp(firebaseConfig);
+    const db_cloud = firebase.database().ref('Elite_System');
+    let db = {};
 
-    <div id="marks-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>📊 Result Entry</h3>
-            <input type="text" id="m-cls" placeholder="Class">
-            <input type="text" id="m-rl" placeholder="Roll No">
-            <div id="subjects-cont">
-                <div class="sub-row" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" placeholder="Sub" class="m-sub">
-                    <input type="number" placeholder="Marks" class="m-obt">
-                    <input type="text" placeholder="Grade" class="m-grd">
-                </div>
-            </div>
-            <button class="btn btn-blue" onclick="addSubjectRow()">+ Add Subject</button>
-            <button class="btn btn-green" onclick="saveMarks()" style="margin-top:10px;">Save Result ✅</button>
-            <button class="btn" onclick="toggleModal('marks-modal')" style="width:100%; margin-top:5px;">Close</button>
-        </div>
-    </div>
+    // 1. Cloud se data khinchna
+    function loadData() {
+        db_cloud.on('value', (snapshot) => {
+            if(snapshot.exists()) {
+                db = snapshot.val();
+                render();
+            }
+        });
+    }
 
-    <div id="link-display-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>🔗 Portal Link</h3>
-            <input type="text" id="share-link-input" readonly>
-            <button class="btn btn-blue" onclick="copyPortalLink()">Copy Link ✅</button>
-            <button class="btn" onclick="toggleModal('link-display-modal')" style="width:100%; margin-top:5px;">Close</button>
-        </div>
-    </div>
+    // 2. Naya Student add karna
+    function addStudent() {
+        const cls = document.getElementById('cls').value;
+        const roll = document.getElementById('roll').value;
+        const tm = document.getElementById('t-marks').value;
+        const om = document.getElementById('o-marks').value;
 
-    <!-- Result View & Download Section -->
-    <div id="view-modal" class="modal hidden">
-        <div class="modal-content" style="width: 850px; background: #555;">
-            <div id="printable-area">
-                <div id="doc-content"></div>
-            </div>
-            <div class="no-print" style="margin-top:20px; display:flex; gap:10px; flex-wrap: wrap;">
-                <button class="btn btn-green" onclick="downloadImage()" style="flex:1;">📸 Save as Image</button>
-                <button class="btn btn-blue" onclick="window.print()" style="flex:1;">🖨 Print / PDF</button>
-                <button class="btn btn-red" onclick="toggleModal('view-modal')" style="flex:1;">Close</button>
-            </div>
-        </div>
-    </div>
+        if(!cls || !roll) { alert("Class aur Roll No zaroori hain!"); return; }
 
-    <script>
-        let db = JSON.parse(localStorage.getItem('Elite_Final_DB')) || {};
-        let banner = localStorage.getItem('Elite_Banner') || "";
-        let state = { lv: 'root', cls: null, roll: null };
-        let isDeleteMode = false;
-
-        function checkPass() { if(document.getElementById('sys-pass').value === "Zee123") { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); render(); } }
-        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
-        function sync() { localStorage.setItem('Elite_Final_DB', JSON.stringify(db)); }
-        function clearInp(id) { document.querySelectorAll(`#${id} input`).forEach(i => i.value=""); }
-
-        function saveBanner() {
-            const reader = new FileReader();
-            reader.onload = (e) => { banner = e.target.result; localStorage.setItem('Elite_Banner', banner); alert("Banner Saved! OK."); toggleModal('banner-modal'); render(); };
-            reader.readAsDataURL(document.getElementById('sch-file').files[0]);
-        }
-
-        function saveStudent() {
-            const r = document.getElementById('s-roll').value, c = document.getElementById('s-class').value;
-            if(!db[c]) db[c] = {};
-            db[c][r] = { name: document.getElementById('s-name').value, fname: document.getElementById('s-fname').value, roll: r, cls: c, mob: document.getElementById('s-mob').value, addr: document.getElementById('s-addr').value, pic: "", marks: [] };
-            sync(); alert("Registered! OK."); clearInp('reg-form'); render();
-        }
-
-        function adminUpdatePic() {
-            const c = document.getElementById('admin-p-cls').value, r = document.getElementById('admin-p-rl').value;
-            const file = document.getElementById('admin-p-file').files[0];
-            if(!db[c] || !db[c][r]) return alert("Not found!");
-            const reader = new FileReader();
-            reader.onload = (e) => { db[c][r].pic = e.target.result; sync(); alert("Photo Fixed! OK."); clearInp('admin-pic-modal'); toggleModal('admin-pic-modal'); render(); };
-            reader.readAsDataURL(file);
-        }
-
-        function addSubjectRow() {
-            const div = document.createElement('div'); div.className = "sub-row"; div.style.display="flex"; div.style.gap="5px"; div.style.marginBottom="5px";
-            div.innerHTML = `<input type="text" placeholder="Sub" class="m-sub"><input type="number" placeholder="Marks" class="m-obt"><input type="text" placeholder="Grade" class="m-grd">`;
-            document.getElementById('subjects-cont').appendChild(div);
-        }
-
-        function saveMarks() {
-            const c = document.getElementById('m-cls').value, r = document.getElementById('m-rl').value;
-            if(!db[c] || !db[c][r]) return alert("Student not found!");
-            const marks = []; document.querySelectorAll('.sub-row').forEach(row => {
-                marks.push({ s: row.querySelector('.m-sub').value, o: row.querySelector('.m-obt').value, g: row.querySelector('.m-grd').value });
-            });
-            db[c][r].marks = marks; sync(); alert("Results Saved! OK."); toggleModal('marks-modal');
-        }
-
-        document.getElementById('link-gen-btn').onclick = function() {
-            document.getElementById('share-link-input').value = "https://elite-portal.com/upload?id=" + Math.random().toString(36).substring(7);
-            toggleModal('link-display-modal');
+        if(!db[cls]) db[cls] = {};
+        db[cls][roll] = { 
+            total: tm || "0", 
+            obtained: om || "0", 
+            pic: "" 
         };
-        function copyPortalLink() {
-            const input = document.getElementById('share-link-input');
-            input.select(); document.execCommand('copy');
-            alert("Link Copied! OK."); toggleModal('link-display-modal');
-        }
+        render();
+    }
 
-        function toggleDeleteMode() {
-            isDeleteMode = !isDeleteMode;
-            document.getElementById('del-mode-btn').innerText = isDeleteMode ? "❌ Cancel" : "🗑 Delete Mode";
-            document.getElementById('confirm-del-btn').classList.toggle('hidden', !isDeleteMode);
+    // 3. Screen par data dikhana
+    function render() {
+        const area = document.getElementById('display-area');
+        area.innerHTML = "";
+        
+        for(let cls in db) {
+            for(let roll in db[cls]) {
+                const s = db[cls][roll];
+                area.innerHTML += `
+                    <div class="student-card">
+                        <img src="${s.pic || 'https://via.placeholder.com/70'}" class="student-pic">
+                        <div class="info">
+                            <h4>Roll No: ${roll} (Class: ${cls})</h4>
+                            <div class="marks-tag">Marks: <b>${s.obtained}</b> / ${s.total}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteStudent('${cls}','${roll}')">Remove</button>
+                    </div>`;
+            }
+        }
+    }
+
+    // 4. Student Delete karna
+    function deleteStudent(cls, roll) {
+        if(confirm("Delete kar dein?")) {
+            delete db[cls][roll];
             render();
         }
+    }
 
-        function executeMultipleDelete() {
-            const selected = document.querySelectorAll('.del-checkbox:checked');
-            if(confirm(`Delete ${selected.length} records?`)) {
-                selected.forEach(cb => { if(state.lv === 'root') delete db[cb.value]; else delete db[state.cls][cb.value]; });
-                sync(); toggleDeleteMode(); render();
-            }
-        }
+    // 5. Cloud par save karna
+    function syncWithCloud() {
+        db_cloud.set(db).then(() => {
+            alert("Data successfully synced with Firebase! ✅");
+        });
+    }
 
-        function render() {
-            const grid = document.getElementById('main-grid');
-            const nav = document.getElementById('nav-label');
-            grid.innerHTML = "";
-            if (state.lv === 'root') {
-                nav.innerText = "Dashboard";
-                grid.innerHTML = `<div class="card" onclick="toggleModal('banner-modal')">🏫 Banner</div><div class="card" onclick="toggleModal('reg-modal')">➕ New Student</div><div class="card" onclick="toggleModal('admin-pic-modal')">📷 Admin Pic Fix</div><div class="card" onclick="toggleModal('marks-modal')">📝 Add Results</div>`;
-                Object.keys(db).forEach(c => { grid.innerHTML += `<div class="card">${isDeleteMode ? `<input type="checkbox" class="del-checkbox" value="${c}">` : ''}<div onclick="state={lv:'class', cls:'${c}'}; render();">📂 Class ${c}</div></div>`; });
-            } else if (state.lv === 'class') {
-                nav.innerText = "Class " + state.cls;
-                Object.keys(db[state.cls]).forEach(r => { grid.innerHTML += `<div class="card">${isDeleteMode ? `<input type="checkbox" class="del-checkbox" value="${r}">` : ''}<div onclick="state={lv:'student', cls:'${state.cls}', roll:'${r}'}; render();">👤 Roll: ${r}</div></div>`; });
-            } else {
-                nav.innerText = "Folder: " + state.roll;
-                grid.innerHTML = `<div class="card" onclick="showResult('bio')">📄 Bio Data</div><div class="card" onclick="showResult('res')">🏆 Result Card</div>`;
-            }
-        }
+    // Page khulte hi data load karo
+    window.onload = loadData;
+</script>
 
-        function showResult(type) {
-            const s = db[state.cls][state.roll];
-            const headerHtml = banner ? `<div class="header-wrapper"><img src="${banner}" class="school-header-img"></div>` : '<div style="text-align:center; padding:10px;"><h2>ELITE MANAGEMENT SYSTEM</h2></div>';
-            const marksHtml = s.marks.map(m => `<tr><td>${m.s}</td><td>${m.o}</td><td>${m.g}</td></tr>`).join('');
-
-            document.getElementById('doc-content').innerHTML = `
-                <div class="result-sheet">
-                    ${headerHtml}
-                    <div class="res-padding">
-                        <div style="display:flex; justify-content:space-between; align-items:start;">
-                            <div style="line-height:1.8; font-size:15px;">
-                                <b>NAME:</b> ${s.name.toUpperCase()}<br>
-                                <b>FATHER:</b> ${s.fname.toUpperCase()}<br>
-                                <b>ROLL NO:</b> ${s.roll}<br>
-                                <b>CLASS:</b> ${s.cls}<br>
-                                <b>MOBILE:</b> ${s.mob}<br>
-                                <b>ADDRESS:</b> ${s.addr}
-                            </div>
-                            <img src="${s.pic || ''}" class="stu-pic">
-                        </div>
-                        ${type === 'res' ? `<table class="marks-table"><thead><tr style="background:#f2f2f2;"><th>SUBJECT</th><th>MARKS</th><th>GRADE</th></tr></thead><tbody>${marksHtml || '<tr><td colspan="3">No Data</td></tr>'}</tbody></table>` : ''}
-                        <div style="margin-top:40px; display:flex; justify-content:space-between;">
-                            <span>_________________<br>Teacher Sign</span>
-                            <span>_________________<br>Principal Sign</span>
-                        </div>
-                    </div>
-                </div>`;
-            toggleModal('view-modal');
-        }
-
-        // Image Download System
-        function downloadImage() {
-            const area = document.getElementById('printable-area');
-            html2canvas(area, { useCORS: true, scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Elite_${state.roll}_Result.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-                alert("Image Saved to Gallery! ✅");
-            });
-        }
-
-        function goBack() { if(state.lv === 'student') state.lv = 'class'; else if(state.lv === 'class') state.lv = 'root'; isDeleteMode = false; render(); }
-        render();
-    </script>
 </body>
-        </html>
+</html>
