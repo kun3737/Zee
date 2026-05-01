@@ -3,135 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Admin v48 | Safe Edition</title>
+    <title>Elite Management - All-in-One</title>
     <style>
-        :root { --primary: #4ecca3; --bg: #1a1a2e; --card: #16213e; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; }
-        
-        #lock-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .lock-box { background: var(--card); padding: 40px; border-radius: 15px; border: 2px solid var(--primary); text-align: center; }
-
-        .folder-nav { display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
-        .tab-btn { background: var(--card); border: 1px solid var(--primary); color: white; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
-        .tab-btn.active { background: var(--primary); color: #1a1a2e; font-weight: bold; }
-
-        .content-folder { display: none; max-width: 900px; margin: auto; background: var(--card); padding: 25px; border-radius: 12px; }
-        .content-folder.active { display: block; }
-
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; background: #0f3460; border: 1px solid #2d3436; color: white; border-radius: 6px; box-sizing: border-box; }
-        .save-btn { background: var(--primary); color: #1a1a2e; padding: 15px; width: 100%; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
-        .student-item { background: #0f3460; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        :root { --primary: #d32f2f; --bg: #0a0a0a; --card: #161616; --text: #e0e0e0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 90%; max-width: 500px; background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.7); text-align: center; }
+        h2 { margin-top: 0; color: #fff; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; box-sizing: border-box; font-size: 16px; }
+        input { background: #222; color: white; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #b71c1c; }
+        .hidden { display: none; }
+        .back-btn { background: transparent; border: 1px solid #444; margin-top: 20px; }
+        #status { font-size: 14px; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="lock-screen">
-    <div class="lock-box">
-        <h2>Elite Admin</h2>
-        <input type="password" id="pass-input" placeholder="Password">
-        <button class="save-btn" onclick="unlock()">Unlock</button>
-    </div>
-</div>
-
-<div class="folder-nav">
-    <button class="tab-btn active" onclick="openTab('reg-folder')">📁 Registration</button>
-    <button class="tab-btn" onclick="openTab('result-folder')">📊 Results</button>
-    <button class="tab-btn" onclick="openTab('link-folder')">🔗 External Portal</button>
-    <button class="tab-btn" onclick="openTab('delete-folder')">🗑️ Delete</button>
-</div>
-
 <div class="container">
-    <!-- Registration -->
-    <div id="reg-folder" class="content-folder active">
-        <h3>Student Registration (Local)</h3>
-        <input type="text" id="s-name" placeholder="Name">
-        <input type="text" id="s-father" placeholder="Father Name">
-        <input type="text" id="s-class" placeholder="Class">
-        <input type="text" id="s-roll" placeholder="Roll No">
-        <input type="text" id="s-phone" placeholder="Phone">
-        <textarea id="s-addr" placeholder="Address"></textarea>
-        <button class="save-btn" onclick="saveLocally()">Save Student</button>
+    <h2>Elite Management v48</h2>
+
+    <!-- MAIN SELECTION -->
+    <div id="mainMenu">
+        <p>Select your portal to continue:</p>
+        <button onclick="showSection('adminLogin')">Admin Dashboard</button>
+        <button onclick="showSection('studentPortal')" style="background: #2e7d32;">Student Photo Portal</button>
     </div>
 
-    <!-- Results -->
-    <div id="result-folder" class="content-folder">
-        <h3>Add Marks</h3>
-        <input type="text" id="r-class" placeholder="Class">
-        <input type="text" id="r-roll" placeholder="Roll No">
-        <input type="number" id="r-total" placeholder="Total Marks">
-        <input type="number" id="r-ob" placeholder="Obtained Marks">
-        <button class="save-btn" onclick="saveMarks()">Update Marks</button>
+    <!-- ADMIN LOGIN -->
+    <div id="adminLogin" class="hidden">
+        <h3>Admin Access</h3>
+        <input type="password" id="adminPass" placeholder="Enter Admin Password">
+        <button onclick="checkAdmin()">Login as Admin</button>
+        <button class="back-btn" onclick="showSection('mainMenu')">Back</button>
     </div>
 
-    <!-- External Link -->
-    <div id="link-folder" class="content-folder">
-        <h3>External Student Portal</h3>
-        <p>Aap aik separate website (e.g. Google Form ya koi dusri free site) yahan link kar sakte hain:</p>
-        <input type="text" id="ext-link" placeholder="Paste your second website link here">
-        <button class="save-btn" onclick="saveLink()">Save Portal Link</button>
-        <div id="current-link" style="margin-top:20px; color:var(--primary)"></div>
+    <!-- ADMIN DASHBOARD -->
+    <div id="adminDash" class="hidden">
+        <h3>Admin Dashboard</h3>
+        <input type="text" id="clR" placeholder="Class">
+        <input type="text" id="roR" placeholder="Roll No">
+        <input type="text" id="naR" placeholder="Student Name">
+        <input type="text" id="faR" placeholder="Father Name">
+        <input type="text" id="paR" placeholder="Assign Password">
+        <button onclick="apiCall('register')">Register Student</button>
+        <button onclick="apiCall('delete')" style="background: #000; border: 1px solid red; color: red;">🗑️ Wipe All Data</button>
+        <button class="back-btn" onclick="showSection('mainMenu')">Logout</button>
     </div>
 
-    <!-- Delete -->
-    <div id="delete-folder" class="content-folder">
-        <h3>Records</h3>
-        <div id="list-area"></div>
+    <!-- STUDENT PORTAL -->
+    <div id="studentPortal" class="hidden">
+        <h3>Student Portal</h3>
+        <input type="text" id="clS" placeholder="Your Class">
+        <input type="text" id="roS" placeholder="Your Roll Number">
+        <input type="file" id="phS" accept="image/*">
+        <button onclick="apiCall('uploadPhoto')" id="upBtn">Upload & Save Photo</button>
+        <button class="back-btn" onclick="showSection('mainMenu')">Back</button>
     </div>
+
+    <div id="status"></div>
 </div>
 
 <script>
-    let students = JSON.parse(localStorage.getItem('elite_data')) || {};
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfj21b6EmEs5OM7RvuyZOWhmTAY4tOPwZL3mVKWG0mI4-3P1vADdmWeBOGnK0k3fCs/exec";
 
-    function unlock() {
-        if(document.getElementById('pass-input').value === "elite786") {
-            document.getElementById('lock-screen').style.display = 'none';
-        } else { alert("Wrong!"); }
+    function showSection(id) {
+        document.getElementById('mainMenu').classList.add('hidden');
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminDash').classList.add('hidden');
+        document.getElementById('studentPortal').classList.add('hidden');
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById('status').innerText = "";
     }
 
-    function openTab(id) {
-        document.querySelectorAll('.content-folder').forEach(f => f.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(id === 'delete-folder') showList();
+    function checkAdmin() {
+        if(document.getElementById('adminPass').value === "elite786") {
+            showSection('adminDash');
+        } else { alert("Wrong Admin Password!"); }
     }
 
-    function saveLocally() {
-        const c = document.getElementById('s-class').value;
-        const r = document.getElementById('s-roll').value;
-        if(!students[c]) students[c] = {};
-        students[c][r] = {
-            name: document.getElementById('s-name').value,
-            father: document.getElementById('s-father').value,
-            phone: document.getElementById('s-phone').value,
-            addr: document.getElementById('s-addr').value
-        };
-        localStorage.setItem('elite_data', JSON.stringify(students));
-        alert("Saved to Local Storage!");
-    }
+    async function apiCall(action) {
+        const status = document.getElementById('status');
+        let data = { action: action };
 
-    function showList() {
-        let html = "";
-        for(let c in students) {
-            for(let r in students[c]) {
-                html += `<div class="student-item">
-                    <span>${students[c][r].name} (Roll: ${r})</span>
-                    <button onclick="del('${c}','${r}')" style="color:red">Delete</button>
-                </div>`;
-            }
+        if (action === 'register') {
+            data.class = document.getElementById('clR').value;
+            data.roll = document.getElementById('roR').value;
+            data.name = document.getElementById('naR').value;
+            data.father = document.getElementById('faR').value;
+            data.pass = document.getElementById('paR').value;
+            if(!data.roll || !data.name) return alert("Fill details!");
         }
-        document.getElementById('list-area').innerHTML = html;
+
+        if (action === 'uploadPhoto') {
+            const file = document.getElementById('phS').files[0];
+            if(!file) return alert("Select photo!");
+            status.innerText = "Processing...";
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                data.class = document.getElementById('clS').value;
+                data.roll = document.getElementById('roS').value;
+                data.image = e.target.result;
+                sendRequest(data);
+            };
+            reader.readAsDataURL(file);
+            return;
+        }
+
+        if (action === 'delete') {
+            if(!confirm("Wipe everything?")) return;
+        }
+
+        sendRequest(data);
     }
 
-    function del(c, r) {
-        delete students[c][r];
-        localStorage.setItem('elite_data', JSON.stringify(students));
-        showList();
-    }
-
-    function saveLink() {
-        const link = document.getElementById('ext-link').value;
-        localStorage.setItem('portal_link', link);
-        document.getElementById('current-link').innerText = "Active Portal: " + link;
+    function sendRequest(data) {
+        document.getElementById('status').innerText = "Sending to Server...";
+        fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
+        .then(() => {
+            document.getElementById('status').innerHTML = "✅ Action Completed!";
+            if(data.action === 'uploadPhoto') document.getElementById('upBtn').disabled = true;
+        });
     }
 </script>
 </body>
