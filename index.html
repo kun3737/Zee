@@ -3,58 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Management v48 - Official</title>
+    <title>Elite Management v48 - Admin Dashboard</title>
     
-    <!-- Firebase SDK (Zaroori Libraries) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
-        /* CSS: Design aur Layout */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; color: #ffffff; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: #16213e; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { text-align: center; color: #4ecca3; text-transform: uppercase; letter-spacing: 2px; }
+        :root { --primary: #4ecca3; --bg: #1a1a2e; --card: #16213e; --text: #eeeeee; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         
-        .form-section { background: #0f3460; padding: 20px; border-radius: 10px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        input { padding: 12px; border: none; border-radius: 5px; background: #e9ecef; color: #333; font-weight: bold; }
+        /* Banner & Header */
+        .school-banner { width: 100%; height: 180px; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://via.placeholder.com/1200x300?text=ELITE+ACADEMY+SYSTEM'); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; border-bottom: 4px solid var(--primary); }
+        .banner-text { text-align: center; }
         
-        button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .add-btn { background: #4ecca3; color: #1a1a2e; }
-        .add-btn:hover { background: #45b391; }
-        .sync-btn { background: #e94560; color: white; width: 100%; margin-top: 20px; font-size: 16px; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 
-        .student-list { margin-top: 20px; }
-        .student-card { background: #1a1a2e; border-left: 5px solid #4ecca3; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 20px; border-radius: 0 10px 10px 0; }
-        .student-pic { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #4ecca3; object-fit: cover; }
-        .info { flex-grow: 1; }
-        .info h4 { margin: 0; color: #4ecca3; font-size: 18px; }
-        .marks-tag { font-size: 14px; background: #0f3460; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
-        .delete-btn { background: #ff4d4d; color: white; padding: 8px 12px; font-size: 12px; }
+        /* Panels */
+        .panel { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        h3 { color: var(--primary); border-bottom: 1px solid #2d3436; padding-bottom: 10px; margin-top: 0; }
+        
+        /* Form Styling */
+        .input-group { margin-bottom: 10px; }
+        label { display: block; font-size: 12px; margin-bottom: 4px; color: #888; }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #2d3436; background: #0f3460; color: white; box-sizing: border-box; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-add { background: var(--primary); color: #1a1a2e; }
+        .btn-sync { background: #e94560; color: white; margin-top: 20px; }
+        .btn-link { background: #3498db; color: white; }
+
+        /* Student Cards */
+        .student-list { display: grid; gap: 15px; }
+        .student-card { background: #1a1a2e; padding: 15px; border-radius: 10px; display: flex; gap: 15px; align-items: center; border: 1px solid #2d3436; }
+        .student-img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 2px solid var(--primary); }
+        .details { flex-grow: 1; }
+        .details h4 { margin: 0; color: var(--primary); }
+        .details p { margin: 3px 0; font-size: 13px; color: #ccc; }
+        .actions { display: flex; flex-direction: column; gap: 5px; }
+        .btn-del { background: #ff4757; color: white; padding: 5px 10px; font-size: 11px; }
+
+        /* Login Overlay */
+        #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: var(--card); padding: 40px; border-radius: 15px; text-align: center; border: 1px solid var(--primary); }
     </style>
 </head>
 <body>
 
+<!-- Password Protection -->
+<div id="login-overlay">
+    <div class="login-box">
+        <h2>Elite Admin Login</h2>
+        <input type="password" id="admin-pass" placeholder="Enter Password">
+        <button class="btn-add" onclick="checkPass()">Access Dashboard</button>
+    </div>
+</div>
+
+<div class="school-banner">
+    <div class="banner-text">
+        <h1 style="margin:0; font-size: 40px;">ELITE ACADEMY</h1>
+        <p style="letter-spacing: 5px; color: var(--primary);">MANAGEMENT SYSTEM V48</p>
+    </div>
+</div>
+
 <div class="container">
-    <h2>Elite Management v48</h2>
-    
-    <!-- Input Fields -->
-    <div class="form-section">
-        <input type="text" id="cls" placeholder="Class (e.g. 10th)">
-        <input type="text" id="roll" placeholder="Roll Number">
-        <input type="number" id="t-marks" placeholder="Total Marks">
-        <input type="number" id="o-marks" placeholder="Obtained Marks">
-        <button class="add-btn" onclick="addStudent()">Add Student</button>
-    </div>
+    <div class="grid">
+        <!-- Add Student Form -->
+        <div class="panel">
+            <h3>Student Info</h3>
+            <div class="input-group">
+                <input type="text" id="s-name" placeholder="Student Name">
+            </div>
+            <div class="input-group">
+                <input type="text" id="s-father" placeholder="Father's Name">
+            </div>
+            <div class="input-group">
+                <input type="text" id="s-class" placeholder="Class">
+                <input type="text" id="s-roll" placeholder="Roll Number" style="margin-top:10px;">
+            </div>
+            <div class="input-group">
+                <input type="text" id="s-phone" placeholder="Mobile Number">
+            </div>
+            <div class="input-group">
+                <input type="text" id="s-address" placeholder="Home Address">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="s-total" placeholder="Total Marks">
+                <input type="number" id="s-obtained" placeholder="Obtained">
+            </div>
+            <button class="btn-add" onclick="addStudent()">Register Student</button>
+            <button class="btn-link" onclick="copyPortalLink()">Copy Student Portal Link 🔗</button>
+        </div>
 
-    <div id="display-area" class="student-list">
-        <!-- Students yahan show honge -->
+        <!-- Student Records -->
+        <div class="panel">
+            <h3>Registered Students</h3>
+            <div id="display-area" class="student-list"></div>
+            <button class="btn-sync" onclick="syncWithCloud()">Sync All Data to Cloud ☁️</button>
+        </div>
     </div>
-
-    <button class="sync-btn" onclick="syncWithCloud()">Save & Sync to Cloud ☁️</button>
 </div>
 
 <script>
-    // JavaScript: Logic aur Firebase Connection
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyBAmI0iETjOAVygeMfLho4Yp0qWhV9P1XI",
         authDomain: "elite-management-58a3f.firebaseapp.com",
@@ -69,7 +122,15 @@
     const db_cloud = firebase.database().ref('Elite_System');
     let db = {};
 
-    // 1. Cloud se data khinchna
+    function checkPass() {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === "elite786") { // Apna password yahan set karein
+            document.getElementById('login-overlay').style.display = 'none';
+        } else {
+            alert("Wrong Password!");
+        }
+    }
+
     function loadData() {
         db_cloud.on('value', (snapshot) => {
             if(snapshot.exists()) {
@@ -79,63 +140,73 @@
         });
     }
 
-    // 2. Naya Student add karna
     function addStudent() {
-        const cls = document.getElementById('cls').value;
-        const roll = document.getElementById('roll').value;
-        const tm = document.getElementById('t-marks').value;
-        const om = document.getElementById('o-marks').value;
+        const name = document.getElementById('s-name').value;
+        const father = document.getElementById('s-father').value;
+        const cls = document.getElementById('s-class').value;
+        const roll = document.getElementById('s-roll').value;
+        const phone = document.getElementById('s-phone').value;
+        const addr = document.getElementById('s-address').value;
+        const tm = document.getElementById('s-total').value;
+        const om = document.getElementById('s-obtained').value;
 
-        if(!cls || !roll) { alert("Class aur Roll No zaroori hain!"); return; }
+        if(!cls || !roll) return alert("Class/Roll missing!");
 
         if(!db[cls]) db[cls] = {};
-        db[cls][roll] = { 
-            total: tm || "0", 
-            obtained: om || "0", 
-            pic: "" 
+        db[cls][roll] = {
+            name: name,
+            father: father,
+            phone: phone,
+            address: addr,
+            total: tm,
+            obtained: om,
+            pic: ""
         };
         render();
     }
 
-    // 3. Screen par data dikhana
     function render() {
         const area = document.getElementById('display-area');
         area.innerHTML = "";
-        
         for(let cls in db) {
             for(let roll in db[cls]) {
                 const s = db[cls][roll];
                 area.innerHTML += `
                     <div class="student-card">
-                        <img src="${s.pic || 'https://via.placeholder.com/70'}" class="student-pic">
-                        <div class="info">
-                            <h4>Roll No: ${roll} (Class: ${cls})</h4>
-                            <div class="marks-tag">Marks: <b>${s.obtained}</b> / ${s.total}</div>
+                        <img src="${s.pic || 'https://via.placeholder.com/80?text=NO+PIC'}" class="student-img">
+                        <div class="details">
+                            <h4>${s.name || 'Unknown Student'}</h4>
+                            <p><b>Father:</b> ${s.father || '-'}</p>
+                            <p><b>Roll:</b> ${roll} | <b>Class:</b> ${cls}</p>
+                            <p><b>Addr:</b> ${s.address || '-'}</p>
+                            <p><b>Marks:</b> ${s.obtained}/${s.total}</p>
                         </div>
-                        <button class="delete-btn" onclick="deleteStudent('${cls}','${roll}')">Remove</button>
+                        <div class="actions">
+                            <button class="btn-del" onclick="deleteStudent('${cls}','${roll}')">Delete</button>
+                        </div>
                     </div>`;
             }
         }
     }
 
-    // 4. Student Delete karna
     function deleteStudent(cls, roll) {
-        if(confirm("Delete kar dein?")) {
+        if(confirm("Yaqeenan delete karna hai?")) {
             delete db[cls][roll];
             render();
         }
     }
 
-    // 5. Cloud par save karna
     function syncWithCloud() {
-        db_cloud.set(db).then(() => {
-            alert("Data successfully synced with Firebase! ✅");
-        });
+        db_cloud.set(db).then(() => alert("Data Cloud Sync Complete! ✅"));
     }
 
-    // Page khulte hi data load karo
+    function copyPortalLink() {
+        const portalURL = window.location.href.replace('index.html', 'portal.html');
+        navigator.clipboard.writeText(portalURL);
+        alert("Link copied! Share it with students: " + portalURL);
+    }
+
     window.onload = loadData;
 </script>
-
 </body>
 </html>
