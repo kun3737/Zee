@@ -3,62 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Management - All-in-One</title>
+    <title>Elite Management - Professional Dashboard</title>
     <style>
         :root { --primary: #d32f2f; --bg: #0a0a0a; --card: #161616; --text: #e0e0e0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 90%; max-width: 500px; background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.7); text-align: center; }
-        h2 { margin-top: 0; color: #fff; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; box-sizing: border-box; font-size: 16px; }
-        input { background: #222; color: white; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #b71c1c; }
-        .hidden { display: none; }
-        .back-btn { background: transparent; border: 1px solid #444; margin-top: 20px; }
-        #status { font-size: 14px; margin-top: 10px; font-weight: bold; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .folder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .folder { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #333; cursor: pointer; text-align: center; transition: 0.3s; }
+        .folder:hover { border-color: var(--primary); background: #222; }
+        .folder i { font-size: 30px; display: block; margin-bottom: 10px; }
+        .content-area { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #333; margin-top: 20px; display: none; }
+        input, button, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; box-sizing: border-box; background: #222; color: white; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
+        .back-btn { background: #333; margin-top: 15px; }
+        #status { text-align: center; font-weight: bold; margin-top: 10px; }
+        .active { display: block !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Elite Management v48</h2>
+<div class="container" id="mainApp">
+    <h2 style="text-align:center; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">Elite Management Dashboard</h2>
 
-    <!-- MAIN SELECTION -->
-    <div id="mainMenu">
-        <p>Select your portal to continue:</p>
-        <button onclick="showSection('adminLogin')">Admin Dashboard</button>
-        <button onclick="showSection('studentPortal')" style="background: #2e7d32;">Student Photo Portal</button>
+    <!-- FOLDER GRID -->
+    <div class="folder-grid" id="grid">
+        <div class="folder" onclick="openFolder('regForm')">📁 Student Registration</div>
+        <div class="folder" onclick="openFolder('resultCard')">📊 Results Card</div>
+        <div class="folder" onclick="openFolder('bannerArea')">🖼️ Banner Pic</div>
+        <div class="folder" onclick="openFolder('studentPicArea')">👤 Student Pic (Link System)</div>
     </div>
 
-    <!-- ADMIN LOGIN -->
-    <div id="adminLogin" class="hidden">
-        <h3>Admin Access</h3>
-        <input type="password" id="adminPass" placeholder="Enter Admin Password">
-        <button onclick="checkAdmin()">Login as Admin</button>
-        <button class="back-btn" onclick="showSection('mainMenu')">Back</button>
+    <!-- 1. STUDENT REGISTRATION -->
+    <div id="regForm" class="content-area">
+        <h3>New Student Registration</h3>
+        <input type="text" id="cl" placeholder="Class">
+        <input type="text" id="ro" placeholder="Roll Number">
+        <input type="text" id="na" placeholder="Student Name">
+        <input type="text" id="fa" placeholder="Father Name">
+        <input type="text" id="mo" placeholder="Mobile Number">
+        <textarea id="ad" placeholder="Home Address"></textarea>
+        <button onclick="saveData('register')">Save to Database</button>
+        <button class="back-btn" onclick="closeFolder()">Back to Folders</button>
     </div>
 
-    <!-- ADMIN DASHBOARD -->
-    <div id="adminDash" class="hidden">
-        <h3>Admin Dashboard</h3>
-        <input type="text" id="clR" placeholder="Class">
-        <input type="text" id="roR" placeholder="Roll No">
-        <input type="text" id="naR" placeholder="Student Name">
-        <input type="text" id="faR" placeholder="Father Name">
-        <input type="text" id="paR" placeholder="Assign Password">
-        <button onclick="apiCall('register')">Register Student</button>
-        <button onclick="apiCall('delete')" style="background: #000; border: 1px solid red; color: red;">🗑️ Wipe All Data</button>
-        <button class="back-btn" onclick="showSection('mainMenu')">Logout</button>
+    <!-- 2. RESULTS CARD -->
+    <div id="resultCard" class="content-area">
+        <h3>Results Management</h3>
+        <p>Search student to generate result card:</p>
+        <input type="text" id="searchRoll" placeholder="Enter Roll Number">
+        <button style="background: #2e7d32;">Generate Result Card</button>
+        <button class="back-btn" onclick="closeFolder()">Back</button>
     </div>
 
-    <!-- STUDENT PORTAL -->
-    <div id="studentPortal" class="hidden">
-        <h3>Student Portal</h3>
-        <input type="text" id="clS" placeholder="Your Class">
-        <input type="text" id="roS" placeholder="Your Roll Number">
-        <input type="file" id="phS" accept="image/*">
-        <button onclick="apiCall('uploadPhoto')" id="upBtn">Upload & Save Photo</button>
-        <button class="back-btn" onclick="showSection('mainMenu')">Back</button>
+    <!-- 3. BANNER PIC -->
+    <div id="bannerArea" class="content-area">
+        <h3>Banner Management</h3>
+        <input type="file" id="bannerInput" accept="image/*">
+        <button onclick="saveData('uploadBanner')">Update System Banner</button>
+        <button class="back-btn" onclick="closeFolder()">Back</button>
+    </div>
+
+    <!-- 4. STUDENT PIC (LINK SYSTEM) -->
+    <div id="studentPicArea" class="content-area">
+        <h3>Student Upload Link</h3>
+        <p>Niche wala link copy karke student ko bhejein:</p>
+        <input type="text" id="copyLink" readonly value="https://aapka-github-link.io/?mode=student">
+        <button onclick="copyToClipboard()" style="background: #1976d2;">📋 Copy Link</button>
+        <hr>
+        <h3>Admin Direct Upload</h3>
+        <input type="text" id="adminRoll" placeholder="Roll No for Photo">
+        <input type="file" id="adminPhoto" accept="image/*">
+        <button onclick="saveData('adminUpload')">Upload Photo</button>
+        <button class="back-btn" onclick="closeFolder()">Back</button>
+    </div>
+
+    <!-- STUDENT PORTAL (AUTO-OPEN BY LINK) -->
+    <div id="studentPortal" class="content-area">
+        <h3>Student Photo Portal</h3>
+        <input type="text" id="sCl" placeholder="Class">
+        <input type="text" id="sRo" placeholder="Roll Number">
+        <input type="file" id="sPh" accept="image/*">
+        <button onclick="saveData('studentUpload')">Submit Photo</button>
     </div>
 
     <div id="status"></div>
@@ -67,62 +92,52 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfj21b6EmEs5OM7RvuyZOWhmTAY4tOPwZL3mVKWG0mI4-3P1vADdmWeBOGnK0k3fCs/exec";
 
-    function showSection(id) {
-        document.getElementById('mainMenu').classList.add('hidden');
-        document.getElementById('adminLogin').classList.add('hidden');
-        document.getElementById('adminDash').classList.add('hidden');
-        document.getElementById('studentPortal').classList.add('hidden');
-        document.getElementById(id).classList.remove('hidden');
-        document.getElementById('status').innerText = "";
+    // URL Check (Check if student link is opened)
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'student') {
+            document.getElementById('grid').style.display = 'none';
+            openFolder('studentPortal');
+        }
     }
 
-    function checkAdmin() {
-        if(document.getElementById('adminPass').value === "elite786") {
-            showSection('adminDash');
-        } else { alert("Wrong Admin Password!"); }
+    function openFolder(id) {
+        document.querySelectorAll('.content-area').forEach(d => d.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('grid').style.display = (id === 'studentPortal') ? 'none' : 'grid';
     }
 
-    async function apiCall(action) {
+    function closeFolder() {
+        document.querySelectorAll('.content-area').forEach(d => d.classList.remove('active'));
+    }
+
+    function copyToClipboard() {
+        var copyText = document.getElementById("copyLink");
+        copyText.select();
+        document.execCommand("copy");
+        alert("Link copied! Ab ye student ko bhej dein.");
+    }
+
+    // Main API Handler
+    function saveData(action) {
         const status = document.getElementById('status');
+        status.innerText = "Processing...";
+        
         let data = { action: action };
-
-        if (action === 'register') {
-            data.class = document.getElementById('clR').value;
-            data.roll = document.getElementById('roR').value;
-            data.name = document.getElementById('naR').value;
-            data.father = document.getElementById('faR').value;
-            data.pass = document.getElementById('paR').value;
-            if(!data.roll || !data.name) return alert("Fill details!");
+        
+        if(action === 'register') {
+            data.class = document.getElementById('cl').value;
+            data.roll = document.getElementById('ro').value;
+            data.name = document.getElementById('na').value;
+            data.father = document.getElementById('fa').value;
+            data.mobile = document.getElementById('mo').value;
+            data.address = document.getElementById('ad').value;
         }
 
-        if (action === 'uploadPhoto') {
-            const file = document.getElementById('phS').files[0];
-            if(!file) return alert("Select photo!");
-            status.innerText = "Processing...";
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                data.class = document.getElementById('clS').value;
-                data.roll = document.getElementById('roS').value;
-                data.image = e.target.result;
-                sendRequest(data);
-            };
-            reader.readAsDataURL(file);
-            return;
-        }
-
-        if (action === 'delete') {
-            if(!confirm("Wipe everything?")) return;
-        }
-
-        sendRequest(data);
-    }
-
-    function sendRequest(data) {
-        document.getElementById('status').innerText = "Sending to Server...";
         fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
         .then(() => {
-            document.getElementById('status').innerHTML = "✅ Action Completed!";
-            if(data.action === 'uploadPhoto') document.getElementById('upBtn').disabled = true;
+            status.innerText = "✅ Operation Successful!";
+            if(action === 'register') alert("Student Registered!");
         });
     }
 </script>
