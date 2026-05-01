@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Management v46 | Final Pro</title>
+    <title>Elite Management v47 | Final Pro</title>
+    <!-- Image Download ke liye Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --bg: #2c3e50; --header: #1a1a1a; --card-bg: #ecf0f1; --text: #2c3e50; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 0; }
@@ -70,7 +72,7 @@
         </div>
     </div>
 
-    <!-- 1. Banner Modal -->
+    <!-- Modals (Banner, Reg, Admin Pic, Marks, Link) -->
     <div id="banner-modal" class="modal hidden">
         <div class="modal-content">
             <h3>🏫 School Banner</h3>
@@ -80,7 +82,6 @@
         </div>
     </div>
 
-    <!-- 2. Registration Modal -->
     <div id="reg-modal" class="modal hidden">
         <div class="modal-content">
             <h3>👤 Register Student</h3>
@@ -97,7 +98,6 @@
         </div>
     </div>
 
-    <!-- 3. Admin Photo Fix Modal -->
     <div id="admin-pic-modal" class="modal hidden">
         <div class="modal-content">
             <h3>📷 Admin: Update Photo</h3>
@@ -109,7 +109,6 @@
         </div>
     </div>
 
-    <!-- 4. Result Entry Modal -->
     <div id="marks-modal" class="modal hidden">
         <div class="modal-content">
             <h3>📊 Result Entry</h3>
@@ -128,7 +127,6 @@
         </div>
     </div>
 
-    <!-- 5. Link Modal -->
     <div id="link-display-modal" class="modal hidden">
         <div class="modal-content">
             <h3>🔗 Portal Link</h3>
@@ -138,15 +136,16 @@
         </div>
     </div>
 
-    <!-- Result Card View -->
+    <!-- Result View & Download Section -->
     <div id="view-modal" class="modal hidden">
         <div class="modal-content" style="width: 850px; background: #555;">
             <div id="printable-area">
                 <div id="doc-content"></div>
             </div>
-            <div class="no-print" style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn btn-green" onclick="window.print()">🖨 Print / Save PDF</button>
-                <button class="btn btn-red" onclick="toggleModal('view-modal')">Close</button>
+            <div class="no-print" style="margin-top:20px; display:flex; gap:10px; flex-wrap: wrap;">
+                <button class="btn btn-green" onclick="downloadImage()" style="flex:1;">📸 Save as Image</button>
+                <button class="btn btn-blue" onclick="window.print()" style="flex:1;">🖨 Print / PDF</button>
+                <button class="btn btn-red" onclick="toggleModal('view-modal')" style="flex:1;">Close</button>
             </div>
         </div>
     </div>
@@ -162,14 +161,12 @@
         function sync() { localStorage.setItem('Elite_Final_DB', JSON.stringify(db)); }
         function clearInp(id) { document.querySelectorAll(`#${id} input`).forEach(i => i.value=""); }
 
-        // Banner
         function saveBanner() {
             const reader = new FileReader();
-            reader.onload = (e) => { banner = e.target.result; localStorage.setItem('Elite_Banner', banner); alert("Banner Saved! OK."); toggleModal('banner-modal'); };
+            reader.onload = (e) => { banner = e.target.result; localStorage.setItem('Elite_Banner', banner); alert("Banner Saved! OK."); toggleModal('banner-modal'); render(); };
             reader.readAsDataURL(document.getElementById('sch-file').files[0]);
         }
 
-        // Student
         function saveStudent() {
             const r = document.getElementById('s-roll').value, c = document.getElementById('s-class').value;
             if(!db[c]) db[c] = {};
@@ -177,7 +174,6 @@
             sync(); alert("Registered! OK."); clearInp('reg-form'); render();
         }
 
-        // Admin Photo Fix
         function adminUpdatePic() {
             const c = document.getElementById('admin-p-cls').value, r = document.getElementById('admin-p-rl').value;
             const file = document.getElementById('admin-p-file').files[0];
@@ -187,7 +183,6 @@
             reader.readAsDataURL(file);
         }
 
-        // Marks
         function addSubjectRow() {
             const div = document.createElement('div'); div.className = "sub-row"; div.style.display="flex"; div.style.gap="5px"; div.style.marginBottom="5px";
             div.innerHTML = `<input type="text" placeholder="Sub" class="m-sub"><input type="number" placeholder="Marks" class="m-obt"><input type="text" placeholder="Grade" class="m-grd">`;
@@ -203,10 +198,8 @@
             db[c][r].marks = marks; sync(); alert("Results Saved! OK."); toggleModal('marks-modal');
         }
 
-        // Link
         document.getElementById('link-gen-btn').onclick = function() {
-            const link = "https://elite-portal.com/upload?id=" + Math.random().toString(36).substring(7);
-            document.getElementById('share-link-input').value = link;
+            document.getElementById('share-link-input').value = "https://elite-portal.com/upload?id=" + Math.random().toString(36).substring(7);
             toggleModal('link-display-modal');
         };
         function copyPortalLink() {
@@ -215,7 +208,6 @@
             alert("Link Copied! OK."); toggleModal('link-display-modal');
         }
 
-        // Delete System
         function toggleDeleteMode() {
             isDeleteMode = !isDeleteMode;
             document.getElementById('del-mode-btn').innerText = isDeleteMode ? "❌ Cancel" : "🗑 Delete Mode";
@@ -226,10 +218,7 @@
         function executeMultipleDelete() {
             const selected = document.querySelectorAll('.del-checkbox:checked');
             if(confirm(`Delete ${selected.length} records?`)) {
-                selected.forEach(cb => {
-                    if(state.lv === 'root') delete db[cb.value];
-                    else delete db[state.cls][cb.value];
-                });
+                selected.forEach(cb => { if(state.lv === 'root') delete db[cb.value]; else delete db[state.cls][cb.value]; });
                 sync(); toggleDeleteMode(); render();
             }
         }
@@ -238,24 +227,13 @@
             const grid = document.getElementById('main-grid');
             const nav = document.getElementById('nav-label');
             grid.innerHTML = "";
-
             if (state.lv === 'root') {
                 nav.innerText = "Dashboard";
                 grid.innerHTML = `<div class="card" onclick="toggleModal('banner-modal')">🏫 Banner</div><div class="card" onclick="toggleModal('reg-modal')">➕ New Student</div><div class="card" onclick="toggleModal('admin-pic-modal')">📷 Admin Pic Fix</div><div class="card" onclick="toggleModal('marks-modal')">📝 Add Results</div>`;
-                Object.keys(db).forEach(c => {
-                    grid.innerHTML += `<div class="card">
-                        ${isDeleteMode ? `<input type="checkbox" class="del-checkbox" value="${c}">` : ''}
-                        <div onclick="state={lv:'class', cls:'${c}'}; render();">📂 Class ${c}</div>
-                    </div>`;
-                });
+                Object.keys(db).forEach(c => { grid.innerHTML += `<div class="card">${isDeleteMode ? `<input type="checkbox" class="del-checkbox" value="${c}">` : ''}<div onclick="state={lv:'class', cls:'${c}'}; render();">📂 Class ${c}</div></div>`; });
             } else if (state.lv === 'class') {
                 nav.innerText = "Class " + state.cls;
-                Object.keys(db[state.cls]).forEach(r => {
-                    grid.innerHTML += `<div class="card">
-                        ${isDeleteMode ? `<input type="checkbox" class="del-checkbox" value="${r}">` : ''}
-                        <div onclick="state={lv:'student', cls:'${state.cls}', roll:'${r}'}; render();">👤 Roll: ${r}</div>
-                    </div>`;
-                });
+                Object.keys(db[state.cls]).forEach(r => { grid.innerHTML += `<div class="card">${isDeleteMode ? `<input type="checkbox" class="del-checkbox" value="${r}">` : ''}<div onclick="state={lv:'student', cls:'${state.cls}', roll:'${r}'}; render();">👤 Roll: ${r}</div></div>`; });
             } else {
                 nav.innerText = "Folder: " + state.roll;
                 grid.innerHTML = `<div class="card" onclick="showResult('bio')">📄 Bio Data</div><div class="card" onclick="showResult('res')">🏆 Result Card</div>`;
@@ -272,19 +250,18 @@
                     ${headerHtml}
                     <div class="res-padding">
                         <div style="display:flex; justify-content:space-between; align-items:start;">
-                            <div style="line-height:1.6;">
-                                <b>NAME:</b> ${s.name.toUpperCase()}<br><b>FATHER:</b> ${s.fname.toUpperCase()}<br>
-                                <b>ROLL NO:</b> ${s.roll} | <b>CLASS:</b> ${s.cls}<br>
-                                <b>MOBILE:</b> ${s.mob}<br><b>ADDRESS:</b> ${s.addr}
+                            <div style="line-height:1.8; font-size:15px;">
+                                <b>NAME:</b> ${s.name.toUpperCase()}<br>
+                                <b>FATHER:</b> ${s.fname.toUpperCase()}<br>
+                                <b>ROLL NO:</b> ${s.roll}<br>
+                                <b>CLASS:</b> ${s.cls}<br>
+                                <b>MOBILE:</b> ${s.mob}<br>
+                                <b>ADDRESS:</b> ${s.addr}
                             </div>
                             <img src="${s.pic || ''}" class="stu-pic">
                         </div>
-                        ${type === 'res' ? `
-                        <table class="marks-table">
-                            <thead><tr style="background:#f2f2f2;"><th>SUBJECT</th><th>MARKS</th><th>GRADE</th></tr></thead>
-                            <tbody>${marksHtml || '<tr><td colspan="3">No Data</td></tr>'}</tbody>
-                        </table>` : ''}
-                        <div style="margin-top:30px; display:flex; justify-content:space-between;">
+                        ${type === 'res' ? `<table class="marks-table"><thead><tr style="background:#f2f2f2;"><th>SUBJECT</th><th>MARKS</th><th>GRADE</th></tr></thead><tbody>${marksHtml || '<tr><td colspan="3">No Data</td></tr>'}</tbody></table>` : ''}
+                        <div style="margin-top:40px; display:flex; justify-content:space-between;">
                             <span>_________________<br>Teacher Sign</span>
                             <span>_________________<br>Principal Sign</span>
                         </div>
@@ -293,12 +270,20 @@
             toggleModal('view-modal');
         }
 
-        function goBack() { 
-            if(state.lv === 'student') state.lv = 'class'; 
-            else if(state.lv === 'class') state.lv = 'root'; 
-            isDeleteMode = false; render(); 
+        // Image Download System
+        function downloadImage() {
+            const area = document.getElementById('printable-area');
+            html2canvas(area, { useCORS: true, scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Elite_${state.roll}_Result.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                alert("Image Saved to Gallery! ✅");
+            });
         }
+
+        function goBack() { if(state.lv === 'student') state.lv = 'class'; else if(state.lv === 'class') state.lv = 'root'; isDeleteMode = false; render(); }
         render();
     </script>
 </body>
-                  </html>
+        </html>
