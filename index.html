@@ -3,142 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Management - Professional Dashboard</title>
+    <title>Elite Management v50</title>
     <style>
         :root { --primary: #d32f2f; --bg: #0a0a0a; --card: #161616; --text: #e0e0e0; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: auto; }
-        .folder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .folder { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #333; cursor: pointer; text-align: center; transition: 0.3s; }
-        .folder:hover { border-color: var(--primary); background: #222; }
-        .folder i { font-size: 30px; display: block; margin-bottom: 10px; }
+        .folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .folder { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #333; cursor: pointer; text-align: center; transition: 0.3s; position: relative; }
+        .folder:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .folder::before { content: "📁"; font-size: 30px; display: block; margin-bottom: 5px; }
+        .student-item { background: #222; padding: 15px; border-radius: 8px; margin: 10px 0; cursor: pointer; border-left: 5px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
         .content-area { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #333; margin-top: 20px; display: none; }
-        input, button, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; box-sizing: border-box; background: #222; color: white; }
+        .active { display: block !important; }
+        .profile-img { width: 150px; height: 150px; border-radius: 10px; object-fit: cover; border: 2px solid var(--primary); margin-bottom: 15px; }
+        input, button, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: white; }
         button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
         .back-btn { background: #333; margin-top: 15px; }
-        #status { text-align: center; font-weight: bold; margin-top: 10px; }
-        .active { display: block !important; }
     </style>
 </head>
 <body>
 
-<div class="container" id="mainApp">
-    <h2 style="text-align:center; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">Elite Management Dashboard</h2>
+<div class="container">
+    <h2 style="text-align:center; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">Elite Management v50</h2>
 
-    <!-- FOLDER GRID -->
-    <div class="folder-grid" id="grid">
-        <div class="folder" onclick="openFolder('regForm')">📁 Student Registration</div>
-        <div class="folder" onclick="openFolder('resultCard')">📊 Results Card</div>
-        <div class="folder" onclick="openFolder('bannerArea')">🖼️ Banner Pic</div>
-        <div class="folder" onclick="openFolder('studentPicArea')">👤 Student Pic (Link System)</div>
+    <!-- MAIN FOLDERS -->
+    <div id="mainDashboard">
+        <div class="folder-grid">
+            <div class="folder" onclick="openSection('regForm')">Add New Student</div>
+            <div class="folder" onclick="fetchClasses()">View Classes</div>
+        </div>
     </div>
 
-    <!-- 1. STUDENT REGISTRATION -->
+    <!-- REGISTRATION -->
     <div id="regForm" class="content-area">
-        <h3>New Student Registration</h3>
+        <h3>Registration</h3>
         <input type="text" id="cl" placeholder="Class">
         <input type="text" id="ro" placeholder="Roll Number">
         <input type="text" id="na" placeholder="Student Name">
         <input type="text" id="fa" placeholder="Father Name">
         <input type="text" id="mo" placeholder="Mobile Number">
-        <textarea id="ad" placeholder="Home Address"></textarea>
-        <button onclick="saveData('register')">Save to Database</button>
-        <button class="back-btn" onclick="closeFolder()">Back to Folders</button>
+        <textarea id="ad" placeholder="Address"></textarea>
+        <button onclick="saveStudent()">Save Student</button>
+        <button class="back-btn" onclick="showMain()">Back</button>
     </div>
 
-    <!-- 2. RESULTS CARD -->
-    <div id="resultCard" class="content-area">
-        <h3>Results Management</h3>
-        <p>Search student to generate result card:</p>
-        <input type="text" id="searchRoll" placeholder="Enter Roll Number">
-        <button style="background: #2e7d32;">Generate Result Card</button>
-        <button class="back-btn" onclick="closeFolder()">Back</button>
+    <!-- CLASS LIST VIEW -->
+    <div id="classListView" class="content-area">
+        <h3>Available Classes</h3>
+        <div id="classGrid" class="folder-grid"></div>
+        <button class="back-btn" onclick="showMain()">Back</button>
     </div>
 
-    <!-- 3. BANNER PIC -->
-    <div id="bannerArea" class="content-area">
-        <h3>Banner Management</h3>
-        <input type="file" id="bannerInput" accept="image/*">
-        <button onclick="saveData('uploadBanner')">Update System Banner</button>
-        <button class="back-btn" onclick="closeFolder()">Back</button>
+    <!-- STUDENT LIST VIEW -->
+    <div id="studentListView" class="content-area">
+        <h3 id="currentClassTitle">Students</h3>
+        <div id="studentList"></div>
+        <button class="back-btn" onclick="openSection('classListView')">Back to Classes</button>
     </div>
 
-    <!-- 4. STUDENT PIC (LINK SYSTEM) -->
-    <div id="studentPicArea" class="content-area">
-        <h3>Student Upload Link</h3>
-        <p>Niche wala link copy karke student ko bhejein:</p>
-        <input type="text" id="copyLink" readonly value="https://aapka-github-link.io/?mode=student">
-        <button onclick="copyToClipboard()" style="background: #1976d2;">📋 Copy Link</button>
-        <hr>
-        <h3>Admin Direct Upload</h3>
-        <input type="text" id="adminRoll" placeholder="Roll No for Photo">
-        <input type="file" id="adminPhoto" accept="image/*">
-        <button onclick="saveData('adminUpload')">Upload Photo</button>
-        <button class="back-btn" onclick="closeFolder()">Back</button>
+    <!-- STUDENT PROFILE VIEW -->
+    <div id="profileView" class="content-area">
+        <h3>Student Profile</h3>
+        <div id="profileContent" style="text-align: center;"></div>
+        <button class="back-btn" onclick="openSection('studentListView')">Back to List</button>
     </div>
 
-    <!-- STUDENT PORTAL (AUTO-OPEN BY LINK) -->
-    <div id="studentPortal" class="content-area">
-        <h3>Student Photo Portal</h3>
-        <input type="text" id="sCl" placeholder="Class">
-        <input type="text" id="sRo" placeholder="Roll Number">
-        <input type="file" id="sPh" accept="image/*">
-        <button onclick="saveData('studentUpload')">Submit Photo</button>
-    </div>
-
-    <div id="status"></div>
 </div>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfj21b6EmEs5OM7RvuyZOWhmTAY4tOPwZL3mVKWG0mI4-3P1vADdmWeBOGnK0k3fCs/exec";
+    let allData = [];
 
-    // URL Check (Check if student link is opened)
-    window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('mode') === 'student') {
-            document.getElementById('grid').style.display = 'none';
-            openFolder('studentPortal');
-        }
+    function showMain() {
+        document.querySelectorAll('.content-area').forEach(d => d.classList.remove('active'));
+        document.getElementById('mainDashboard').style.display = 'block';
     }
 
-    function openFolder(id) {
+    function openSection(id) {
+        document.getElementById('mainDashboard').style.display = 'none';
         document.querySelectorAll('.content-area').forEach(d => d.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.getElementById('grid').style.display = (id === 'studentPortal') ? 'none' : 'grid';
     }
 
-    function closeFolder() {
-        document.querySelectorAll('.content-area').forEach(d => d.classList.remove('active'));
-    }
-
-    function copyToClipboard() {
-        var copyText = document.getElementById("copyLink");
-        copyText.select();
-        document.execCommand("copy");
-        alert("Link copied! Ab ye student ko bhej dein.");
-    }
-
-    // Main API Handler
-    function saveData(action) {
-        const status = document.getElementById('status');
-        status.innerText = "Processing...";
+    // 1. Fetch data and group by Class
+    async function fetchClasses() {
+        openSection('classListView');
+        document.getElementById('classGrid').innerText = "Loading Classes...";
         
-        let data = { action: action };
+        const response = await fetch(SCRIPT_URL);
+        allData = await response.json(); // Sheet data
         
-        if(action === 'register') {
-            data.class = document.getElementById('cl').value;
-            data.roll = document.getElementById('ro').value;
-            data.name = document.getElementById('na').value;
-            data.father = document.getElementById('fa').value;
-            data.mobile = document.getElementById('mo').value;
-            data.address = document.getElementById('ad').value;
-        }
+        const classes = [...new Set(allData.map(item => item[0]))]; // Unique Classes
+        const grid = document.getElementById('classGrid');
+        grid.innerHTML = "";
 
-        fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
-        .then(() => {
-            status.innerText = "✅ Operation Successful!";
-            if(action === 'register') alert("Student Registered!");
+        classes.forEach(cls => {
+            if(cls === "Class") return; // Header skip
+            let div = document.createElement('div');
+            div.className = "folder";
+            div.innerText = "Class " + cls;
+            div.onclick = () => showStudents(cls);
+            grid.appendChild(div);
         });
+    }
+
+    // 2. Show Students of a specific Class
+    function showStudents(cls) {
+        openSection('studentListView');
+        document.getElementById('currentClassTitle').innerText = "Class " + cls + " Students";
+        const list = document.getElementById('studentList');
+        list.innerHTML = "";
+
+        const filtered = allData.filter(item => item[0] === cls);
+        filtered.forEach(stu => {
+            let div = document.createElement('div');
+            div.className = "student-item";
+            div.innerHTML = `<span><b>Roll: ${stu[1]}</b> - ${stu[2]}</span> <span>➔</span>`;
+            div.onclick = () => showProfile(stu);
+            list.appendChild(div);
+        });
+    }
+
+    // 3. Show Full Profile
+    function showProfile(stu) {
+        openSection('profileView');
+        const content = document.getElementById('profileContent');
+        const pic = stu[5] ? `<img src="${stu[5]}" class="profile-img">` : `<div style="padding:20px; background:#333; margin-bottom:10px;">No Photo Uploaded</div>`;
+        
+        content.innerHTML = `
+            ${pic}
+            <div style="text-align:left; background:#222; padding:15px; border-radius:10px;">
+                <p><b>Name:</b> ${stu[2]}</p>
+                <p><b>Father Name:</b> ${stu[3]}</p>
+                <p><b>Roll No:</b> ${stu[1]}</p>
+                <p><b>Mobile:</b> ${stu[4] || 'N/A'}</p>
+                <p><b>Address:</b> ${stu[6] || 'N/A'}</p>
+            </div>
+        `;
+    }
+
+    async function saveStudent() {
+        const data = {
+            action: "register",
+            class: document.getElementById('cl').value,
+            roll: document.getElementById('ro').value,
+            name: document.getElementById('na').value,
+            father: document.getElementById('fa').value,
+            mobile: document.getElementById('mo').value,
+            address: document.getElementById('ad').value
+        };
+        fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
+        .then(() => { alert("Student Saved!"); showMain(); });
     }
 </script>
 </body>
